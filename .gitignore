@@ -1,0 +1,20 @@
+nbac-backend/.venv
+
+# Dependencies
+nbac-backend/node_modules/
+
+# Environment variables
+nbac-backend/.env
+
+nbac-backend/roles.txt
+
+nbac-backend/external_marks.xlsx
+nbac-backend/internal2_marks.xlsx
+nbac-backend/sample_assignment_marks.xlsx
+
+nbac-frontend/.next
+
+nbac-frontend/node_modules
+nbac-frontend/.venv 
+
+
