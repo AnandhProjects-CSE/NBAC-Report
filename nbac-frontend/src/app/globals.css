@@ -120,6 +120,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -130,41 +131,108 @@
   .scrollbar-thin {
     scrollbar-width: thin;
   }
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
+
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: rgba(100, 116, 139, 0.3);
     border-radius: 3px;
   }
+
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: rgba(100, 116, 139, 0.5);
   }
 }
 
-/* Print styles */
+/* ── Print / PDF styles ─────────────────────────────────────────────────
+   Uses Tailwind's print modifier (`print:hidden`) in the layout components
+   to hide the sidebar/topbar. This CSS just resets default browser printing
+   margins, padding, colors, and forces tables to break predictably.
+   ───────────────────────────────────────────────────────────────────── */
 @media print {
+
+  /* Page setup */
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
   body {
     background: white !important;
     color: black !important;
-  }
-  .print-hide {
-    display: none !important;
-  }
-  .print-p-0 {
+    margin: 0 !important;
     padding: 0 !important;
   }
-  .print-shadow-none {
-    box-shadow: none !important;
+
+  /* Force zero margins on layout wrappers to prevent right-shifting */
+  .ml-64,
+  main,
+  #__next,
+  body>div {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    max-width: 100% !important;
   }
-  .print-rounded-none {
-    border-radius: 0 !important;
-  }
-  .print-bg-white {
+
+  /* Reset the specific report container to fill beautifully */
+  #naac-report-content {
     background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: 'Georgia', serif;
+    font-size: 11pt;
+  }
+
+  /* Ensure tables render with borders */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+    font-size: 10pt !important;
+  }
+
+  /* Don't break inside important blocks */
+  section,
+  tr,
+  .avoid-page-break {
+    page-break-inside: avoid;
+  }
+
+  /* Force headings to stay with content */
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+
+  /* Force white backgrounds on colored cells */
+  .bg-slate-50,
+  .bg-slate-100,
+  .bg-slate-800,
+  .dark\:bg-slate-800,
+  .dark\:bg-slate-900\/20,
+  .dark\:bg-slate-900 {
+    background-color: #f8fafc !important;
+    color: black !important;
+  }
+
+  /* Recharts SVGs are included in the output naturally */
+  svg {
+    overflow: visible !important;
   }
 }

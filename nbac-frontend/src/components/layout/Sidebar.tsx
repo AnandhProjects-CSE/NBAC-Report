@@ -39,7 +39,6 @@ const facultyLinks = [
 
 const studentLinks = [
   { href: "/student/dashboard", label: "Dashboard", icon: Home },
-  { href: "/student/dashboard", label: "My Courses", icon: BookOpen },
 ]
 
 export function Sidebar() {
@@ -51,8 +50,8 @@ export function Sidebar() {
     user?.role === "admin"
       ? adminLinks
       : user?.role === "faculty"
-      ? facultyLinks
-      : studentLinks
+        ? facultyLinks
+        : studentLinks
 
   const handleLogout = () => {
     logout()

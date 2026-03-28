@@ -61,11 +61,15 @@ export function AppLayout({ children }: AppLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <Sidebar />
-      <div className={cn("transition-all duration-300 ml-64")}>
-        <TopBar />
-        <main className="p-6">{children}</main>
+    <div className="min-h-screen print:min-h-0 bg-slate-50 dark:bg-slate-950 print:bg-white">
+      <div className="print:hidden">
+        <Sidebar />
+      </div>
+      <div className={cn("transition-all duration-300 ml-64 print:ml-0")}>
+        <div className="print:hidden">
+          <TopBar />
+        </div>
+        <main className="p-6 print:p-0">{children}</main>
       </div>
     </div>
   )

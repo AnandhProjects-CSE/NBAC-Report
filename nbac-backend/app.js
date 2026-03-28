@@ -19,6 +19,7 @@ const marksRoutes = require('./routes/marks.routes');
 const feedbackRoutes = require('./routes/feedback.routes');
 const attainmentRoutes = require('./routes/attainment.routes');
 const reportRoutes = require('./routes/report.routes');
+const infrastructureRoutes = require('./routes/infrastructure.routes');
 
 // Create Express app
 const app = express();
@@ -29,8 +30,8 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.ALLOWED_ORIGINS?.split(',') 
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.ALLOWED_ORIGINS?.split(',')
     : '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -49,7 +50,7 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-app.get("/",(req,res)=>{
+app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
     message: 'NBAC Backend is running',
@@ -158,6 +159,16 @@ app.get('/api', (req, res) => {
           'GET /api/reports/:courseId/full - Full NBA report',
           'GET /api/reports/department - Department report (admin)'
         ]
+      },
+      infrastructure: {
+        description: 'Infrastructure Feedback endpoints',
+        routes: [
+          'POST /api/infrastructure/rate - Submit rating (student)',
+          'PATCH /api/infrastructure/rate - Update rating (student)',
+          'GET /api/infrastructure/my-ratings - Get own ratings (student)',
+          'GET /api/infrastructure/summary - Aggregated summary',
+          'GET /api/infrastructure/admin - Admin analytics (admin)'
+        ]
       }
     }
   });
@@ -169,16 +180,16 @@ app.get('/api', (req, res) => {
  */
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
-  
+
   if (!errors.isEmpty()) {
     const formattedErrors = errors.array().map(error => ({
       field: error.path || error.param,
       message: error.msg
     }));
-    
+
     return ApiResponse.error(res, 400, 'Validation failed', formattedErrors);
   }
-  
+
   next();
 };
 
@@ -213,6 +224,9 @@ app.use('/api/attainment', attainmentRoutes);
 // Report routes
 app.use('/api/reports', reportRoutes);
 
+// Infrastructure Feedback routes
+app.use('/api/infrastructure', infrastructureRoutes);
+
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 /**
@@ -233,9 +247,9 @@ app.use((err, req, res, next) => {
     console.error('Error:', err);
     console.error('Stack:', err.stack);
   }
-  
+
   // Handle known error types
-  
+
   // Mongoose CastError (invalid ObjectId)
   if (err.name === 'CastError') {
     return ApiResponse.error(res, 400, 'Invalid ID format', [{
@@ -243,7 +257,7 @@ app.use((err, req, res, next) => {
       message: `Invalid ${err.kind}: ${err.value}`
     }]);
   }
-  
+
   // Mongoose ValidationError
   if (err.name === 'ValidationError') {
     const errors = Object.values(err.errors).map(e => ({
@@ -252,7 +266,7 @@ app.use((err, req, res, next) => {
     }));
     return ApiResponse.error(res, 400, 'Validation failed', errors);
   }
-  
+
   // Mongoose Duplicate Key Error
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
@@ -262,37 +276,37 @@ app.use((err, req, res, next) => {
       message: `${field} "${value}" already exists`
     }]);
   }
-  
+
   // JWT Errors
   if (err.name === 'JsonWebTokenError') {
     return ApiResponse.error(res, 401, 'Invalid token');
   }
-  
+
   if (err.name === 'TokenExpiredError') {
     return ApiResponse.error(res, 401, 'Token expired');
   }
-  
+
   // Multer Errors
   if (err.code === 'LIMIT_FILE_SIZE') {
     const maxSizeMB = process.env.MAX_FILE_SIZE_MB || 5;
     return ApiResponse.error(res, 400, `File too large. Maximum size is ${maxSizeMB}MB`);
   }
-  
+
   if (err.code === 'LIMIT_UNEXPECTED_FILE') {
     return ApiResponse.error(res, 400, 'Unexpected file field');
   }
-  
+
   // ApiError instances
   if (err instanceof ApiError) {
     return ApiResponse.error(res, err.statusCode, err.message, err.errors);
   }
-  
+
   // Default server error
   const statusCode = err.statusCode || err.status || 500;
-  const message = process.env.NODE_ENV === 'production' 
-    ? 'Internal server error' 
+  const message = process.env.NODE_ENV === 'production'
+    ? 'Internal server error'
     : err.message || 'Internal server error';
-  
+
   return ApiResponse.error(res, statusCode, message);
 });
 

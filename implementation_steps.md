@@ -15,6 +15,7 @@
    -> Open new command prompt
    -> Run step 2 if not activated automatically
    Install Dependencies
+   -> cd nbac-frontend
    -> npm install
    Run UI
    -> npm run dev
