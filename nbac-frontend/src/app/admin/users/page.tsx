@@ -1,10 +1,7 @@
 "use client"
 
-export const dynamic = 'force-dynamic'
-
-import { useState, useMemo, useEffect, Suspense } from "react"
+import { useState, useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -130,17 +127,9 @@ const statusColumn: ColumnDef<User> = {
 
 export default function UserManagementPage() {
   const queryClient = useQueryClient()
-  const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
-  const [search, setSearch] = useState(searchParams.get("search") || "")
+  const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState<string>("all")
-
-  // Sync search state when URL param changes (e.g. from TopBar navigation)
-  useEffect(() => {
-    const urlSearch = searchParams.get("search") || ""
-    setSearch(urlSearch)
-    setPage(1)
-  }, [searchParams])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
