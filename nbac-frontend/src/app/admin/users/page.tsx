@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+export const dynamic = 'force-dynamic'
+
+import { useState, useMemo, useEffect, Suspense } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
