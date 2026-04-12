@@ -49,16 +49,18 @@ const createCourse = asyncHandler(async (req, res, next) => {
     throw ApiError.notFound('Faculty not found or inactive');
   }
   
-  // Check if course code already exists
+  // Check if THIS faculty already has this exact course in same semester/year
+  // (different faculty CAN create the same course)
   const existingCourse = await Course.findOne({
     courseCode: courseCode.toUpperCase(),
     department,
     semester,
-    academicYear
+    academicYear,
+    facultyId: actualFacultyId
   });
   
   if (existingCourse) {
-    throw ApiError.conflict('Course with this code already exists for the given semester and academic year');
+    throw ApiError.conflict('You already have a course with this code for the given semester and academic year');
   }
   
   // Validate enrolled students if provided
@@ -106,7 +108,8 @@ const getAllCourses = asyncHandler(async (req, res, next) => {
     academicYear, 
     department,
     facultyId,
-    isActive 
+    isActive,
+    search
   } = req.query;
   
   const filter = {};
@@ -122,6 +125,15 @@ const getAllCourses = asyncHandler(async (req, res, next) => {
   if (academicYear) filter.academicYear = academicYear;
   if (department) filter.department = new RegExp(department, 'i');
   if (isActive !== undefined) filter.isActive = isActive === 'true';
+
+  // Search by course code or course name
+  if (search && search.trim()) {
+    const searchRegex = new RegExp(search.trim(), 'i');
+    filter.$or = [
+      { courseCode: searchRegex },
+      { courseName: searchRegex }
+    ];
+  }
   
   const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   const limitNum = parseInt(limit, 10);
@@ -198,7 +210,7 @@ const getCourseById = asyncHandler(async (req, res, next) => {
  */
 const updateCourse = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { courseName, semester, academicYear, facultyId, credits, description, isActive } = req.body;
+  const { courseCode, courseName, semester, academicYear, facultyId, credits, description, isActive } = req.body;
   
   const course = await Course.findById(id);
   
@@ -214,14 +226,24 @@ const updateCourse = asyncHandler(async (req, res, next) => {
     }
   }
   
-  // Check for duplicate course code if changing relevant fields
-  if ((semester && semester !== course.semester) || 
-      (academicYear && academicYear !== course.academicYear)) {
+  // Determine the new values for duplicate check
+  const newCourseCode = courseCode ? courseCode.toUpperCase() : course.courseCode;
+  const newSemester = semester || course.semester;
+  const newAcademicYear = academicYear || course.academicYear;
+  const newDepartment = course.department;
+
+  // Check for duplicate course code if any relevant fields changed
+  if (
+    newCourseCode !== course.courseCode ||
+    newSemester !== course.semester ||
+    newAcademicYear !== course.academicYear
+  ) {
     const existing = await Course.findOne({
-      courseCode: course.courseCode,
-      department: course.department,
-      semester: semester || course.semester,
-      academicYear: academicYear || course.academicYear,
+      courseCode: newCourseCode,
+      department: newDepartment,
+      semester: newSemester,
+      academicYear: newAcademicYear,
+      facultyId: course.facultyId, // same faculty — avoid self-conflict
       _id: { $ne: id }
     });
     
@@ -240,6 +262,7 @@ const updateCourse = asyncHandler(async (req, res, next) => {
   }
   
   // Update fields
+  if (courseCode) course.courseCode = courseCode.toUpperCase();
   if (courseName) course.courseName = courseName;
   if (semester) course.semester = semester;
   if (academicYear) course.academicYear = academicYear;

@@ -62,9 +62,10 @@ const courseSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Compound index for unique course code per department + semester + academic year
+// Compound index: same course code can be taught by different faculty in the same semester/year
+// Uniqueness is per faculty, so two faculty can teach the same course simultaneously
 courseSchema.index(
-  { courseCode: 1, department: 1, semester: 1, academicYear: 1 },
+  { courseCode: 1, department: 1, semester: 1, academicYear: 1, facultyId: 1 },
   { unique: true }
 );
 

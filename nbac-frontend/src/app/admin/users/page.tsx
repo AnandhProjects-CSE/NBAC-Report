@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -127,21 +128,30 @@ const statusColumn: ColumnDef<User> = {
 
 export default function UserManagementPage() {
   const queryClient = useQueryClient()
+  const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(searchParams.get("search") || "")
   const [roleFilter, setRoleFilter] = useState<string>("all")
+
+  // Sync search state when URL param changes (e.g. from TopBar navigation)
+  useEffect(() => {
+    const urlSearch = searchParams.get("search") || ""
+    setSearch(urlSearch)
+    setPage(1)
+  }, [searchParams])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: ["users", page, roleFilter],
+    queryKey: ["users", page, roleFilter, search],
     queryFn: () =>
       usersApi.getAll({
         page,
         limit: 10,
         role: roleFilter === "all" ? undefined : (roleFilter as "admin" | "faculty" | "student"),
+        search: search || undefined,
       }),
   })
 
@@ -325,7 +335,7 @@ export default function UserManagementPage() {
           <Input
             placeholder="Search by name or email..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             className="pl-9 bg-white dark:bg-slate-800"
           />
         </div>

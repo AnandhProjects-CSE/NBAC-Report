@@ -98,6 +98,7 @@ interface CourseListParams {
   department?: string
   facultyId?: string
   isActive?: boolean
+  search?: string
 }
 
 export const coursesApi = {
@@ -146,6 +147,7 @@ export const coursesApi = {
   update: async (
     id: string,
     courseData: Partial<{
+      courseCode: string
       courseName: string
       semester: number
       academicYear: string

@@ -281,7 +281,7 @@ const getFullReport = asyncHandler(async (req, res, next) => {
   const report = {
     // SECTION 1: Institution Information
     institutionInfo: {
-      collegeName: process.env.COLLEGE_NAME || 'Institution Name',
+      collegeName: process.env.COLLEGE_NAME || 'Geethanjali College of Engineering and Technology',
       programName: process.env.PROGRAM_NAME || 'B.Tech / BE',
       department: course.department,
       academicYear: course.academicYear,

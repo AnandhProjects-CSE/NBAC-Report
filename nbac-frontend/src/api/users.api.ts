@@ -58,6 +58,7 @@ interface UserListParams {
   role?: "admin" | "faculty" | "student"
   department?: string
   isActive?: boolean
+  search?: string
 }
 
 // Query parameters for unenrolled students

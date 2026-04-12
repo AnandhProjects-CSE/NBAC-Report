@@ -15,7 +15,7 @@ const asyncHandler = require('../utils/asyncHandler');
  * Query params: page, limit, role, department
  */
 const getAllUsers = asyncHandler(async (req, res, next) => {
-  const { page = 1, limit = 20, role, department, isActive } = req.query;
+  const { page = 1, limit = 20, role, department, isActive, search } = req.query;
   
   // Build filter query
   const filter = {};
@@ -30,6 +30,15 @@ const getAllUsers = asyncHandler(async (req, res, next) => {
   
   if (isActive !== undefined) {
     filter.isActive = isActive === 'true';
+  }
+
+  // Search by name or email
+  if (search && search.trim()) {
+    const searchRegex = new RegExp(search.trim(), 'i');
+    filter.$or = [
+      { name: searchRegex },
+      { email: searchRegex }
+    ];
   }
   
   // Calculate pagination
@@ -98,7 +107,7 @@ const getUserById = asyncHandler(async (req, res, next) => {
  */
 const updateUser = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name, department, year, section, rollNumber, isActive, isApproved } = req.body;
+  const { name, department, year, section, rollNumber, isActive, isApproved, password } = req.body;
   
   // Find user
   const user = await User.findById(id);
@@ -140,6 +149,10 @@ const updateUser = asyncHandler(async (req, res, next) => {
   
   if (isActive !== undefined) user.isActive = isActive;
   if (isApproved !== undefined) user.isApproved = isApproved;
+  if (password && password.trim().length >= 6) {
+    user.password = password; // pre-save hook will hash it
+    user.refreshToken = null; // clear existing sessions
+  }
   
   await user.save();
   

@@ -7,18 +7,20 @@ import { coursesApi } from "@/api/courses.api"
 import { DataTable } from "@/components/shared/DataTable"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { ColumnDef } from "@tanstack/react-table"
 import { Course } from "@/api/courses.api"
-import { Eye, Users } from "lucide-react"
+import { Eye, Users, Search } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
 export default function AdminCoursesPage() {
   const [page, setPage] = useState(1)
+  const [search, setSearch] = useState("")
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-courses", page],
-    queryFn: () => coursesApi.getAll({ page, limit: 10 }),
+    queryKey: ["admin-courses", page, search],
+    queryFn: () => coursesApi.getAll({ page, limit: 10, search: search || undefined }),
   })
 
   const columns: ColumnDef<Course>[] = [
@@ -38,7 +40,6 @@ export default function AdminCoursesPage() {
       header: "Faculty",
       cell: ({ row }) => {
         const faculty = row.original.facultyId || row.original.faculty
-        // Handle both populated object and string
         const facultyName = typeof faculty === 'object' ? faculty?.name : "Unassigned"
         return facultyName
       },
@@ -107,12 +108,25 @@ export default function AdminCoursesPage() {
         description="View all courses across the department"
       />
 
+      {/* Search bar */}
+      <div className="mb-6">
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search by code or name..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            className="pl-9 bg-white dark:bg-slate-800"
+          />
+        </div>
+      </div>
+
       <DataTable
         columns={columns}
         data={data?.data || []}
         isLoading={isLoading}
         pagination={{ pageIndex: page - 1, pageSize: 10 }}
-        pageCount={data?.pagination?.pages || 1}
+        pageCount={data?.meta?.pagination?.totalPages || 1}
         onPageChange={(p) => setPage(p + 1)}
         emptyState={{
           title: "No courses found",
@@ -122,3 +136,5 @@ export default function AdminCoursesPage() {
     </AppLayout>
   )
 }
+
+
